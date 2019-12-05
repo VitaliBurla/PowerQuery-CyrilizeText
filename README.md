@@ -1,2 +1,2 @@
-# PowerQuery-CyrilizeText
-Power Query code to turn latin names to Cyrillic (Bulgarian alphabet / pronunciation used)
+# PowerQuery-Cyr-to-Latin Text
+Power Query code to turn Cyrillic names to Latin (Bulgarian alphabet / pronunciation used)
