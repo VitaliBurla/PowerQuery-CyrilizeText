@@ -1,0 +1,22 @@
+(cyrillictext) =>
+let
+    Source = cyrillictext,
+    #"Converted to Table" = #table(1, {{Source}}),
+    #"Added Index" = Table.AddIndexColumn(#"Converted to Table", "Index", 1, 1),
+    #"Reordered Columns" = Table.ReorderColumns(#"Added Index",{"Index", "Column1"}),
+    #"Inserted Merged Column" = Table.AddColumn(#"Reordered Columns", "Merged", each Text.Combine({Text.From([Index], "en-GB"), [Column1]}, ","), type text),
+    #"Lowercased Text" = Table.TransformColumns(#"Inserted Merged Column",{{"Merged", Text.Lower, type text}}),
+    #"Split Column by Position" = Table.SplitColumn(#"Lowercased Text", "Merged", Splitter.SplitTextByRepeatedLengths(1), {"Merged.1", "Merged.2", "Merged.3", "Merged.4", "Merged.5", "Merged.6", "Merged.7", "Merged.8", "Merged.9", "Merged.10", "Merged.11", "Merged.12", "Merged.13", "Merged.14", "Merged.15", "Merged.16", "Merged.17", "Merged.18", "Merged.19", "Merged.20", "Merged.21", "Merged.22"}),
+    #"Removed Columns" = Table.RemoveColumns(#"Split Column by Position",{"Column1"}),
+    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Removed Columns", {"Index"}, "Attribute", "Value"),
+    #"Filtered Rows" = Table.SelectRows(#"Unpivoted Columns", each ([Attribute] <> "Merged.1" and [Attribute] <> "Merged.2")),
+    Substitutions = [#"а"="a",#"б"="b",#"в"="v",#"г"="g",#"д"="d",#"е"="e",#"ж"="zh",#"з"="z",#"и"="i",#"й"="i",#"к"="k",#"л"="l",#"м"="m",#"н"="n",#"о"="o",#"п"="p",#"р"="r",#"с"="s",#"т"="t",#"у"="u",#"ф"="f",#"х"="h",#"ц"="ts",#"ч"="ch",#"ш"="sh",#"щ"="sht",#"ъ"="a",#"ь"="i",#"ю"="yu",#"я"="ya"],
+    Substituted = Table.TransformColumns(#"Filtered Rows", {{"Value", each Record.FieldOrDefault(Substitutions, _, _)}}),
+    #"Grouped Rows" = Table.Group(Substituted, {"Index"}, {{"Count", each _, type table [Index=number, Attribute=text, Value=text]}}),
+    #"Added Custom" = Table.AddColumn(#"Grouped Rows", "Custom", each Lines.ToText(Table.Column([Count], "Value"))),
+    #"Inserted Cleaned Text" = Table.AddColumn(#"Added Custom", "Clean", each Text.Clean([Custom]), type text),
+    #"Removed Other Columns" = Table.SelectColumns(#"Inserted Cleaned Text",{"Clean"}),
+    #"Capitalized Each Word" = Table.TransformColumns(#"Removed Other Columns",{{"Clean", Text.Proper, type text}}),
+    Clean = #"Capitalized Each Word"{0}[Clean]
+in
+    Clean
